@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lab1_mobile_n2/core/di/injection.dart';
 import 'package:lab1_mobile_n2/core/routes/app_routes.dart';
+import 'package:lab1_mobile_n2/core/utils/input_validator.dart';
+import 'package:lab1_mobile_n2/presentation/auth/auth_snackbar.dart';
 import 'package:lab1_mobile_n2/widgets/auth_footer_link.dart';
 import 'package:lab1_mobile_n2/widgets/custom_text_field.dart';
 import 'package:lab1_mobile_n2/widgets/primary_button.dart';
@@ -15,11 +18,14 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _isLoading = false;
+
+  final _signUpUseCase = Injection.instance.signUpUseCase;
 
   @override
   void dispose() {
@@ -30,10 +36,28 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _onSignUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 500));
+    final result = await _signUpUseCase(
+      email: _emailController.text,
+      password: _passwordController.text,
+      displayName: _nameController.text,
+    );
     if (!mounted) return;
     setState(() => _isLoading = false);
+
+    final failure = result.failure;
+    if (failure != null) {
+      showAuthMessage(context, failure.message);
+      return;
+    }
+
+    showAuthMessage(
+      context,
+      'Đăng ký thành công! Vui lòng đăng nhập.',
+      isError: false,
+    );
     Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
@@ -43,7 +67,9 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          child: Column(
+          child: Form(
+            key: _formKey,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const ScreenHeader(
@@ -56,12 +82,14 @@ class _SignupScreenState extends State<SignupScreen> {
               CustomTextField(
                 label: 'Full name',
                 controller: _nameController,
+                validator: InputValidator.name,
               ),
               const SizedBox(height: 18),
               CustomTextField(
                 label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                validator: InputValidator.email,
               ),
               const SizedBox(height: 18),
               CustomTextField(
@@ -69,6 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _passwordController,
                 obscureText: true,
                 showVisibilityToggle: true,
+                validator: InputValidator.password,
               ),
               const SizedBox(height: 14),
               RememberForgotRow(
@@ -99,6 +128,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 },
               ),
             ],
+            ),
           ),
         ),
       ),

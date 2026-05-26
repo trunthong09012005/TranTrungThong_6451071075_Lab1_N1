@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lab1_mobile_n2/core/di/injection.dart';
 import 'package:lab1_mobile_n2/core/routes/app_routes.dart';
 import 'package:lab1_mobile_n2/core/theme/app_colors.dart';
 import 'package:lab1_mobile_n2/widgets/jobspot_logo.dart';
@@ -16,7 +17,11 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+      final isLoggedIn = Injection.instance.getAuthStateUseCase.currentUser != null;
+      Navigator.pushReplacementNamed(
+        context,
+        isLoggedIn ? AppRoutes.home : AppRoutes.onboarding,
+      );
     });
   }
 

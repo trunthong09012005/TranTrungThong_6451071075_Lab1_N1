@@ -12,6 +12,7 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType,
     this.obscureText = false,
     this.showVisibilityToggle = false,
+    this.validator,
   });
 
   final String label;
@@ -20,6 +21,7 @@ class CustomTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final bool showVisibilityToggle;
+  final String? Function(String?)? validator;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -44,10 +46,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: widget.controller,
           keyboardType: widget.keyboardType,
           obscureText: _obscured,
+          validator: widget.validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
             hintText: widget.hint ?? 'Enter ${widget.label.toLowerCase()}',
             suffixIcon: widget.showVisibilityToggle
